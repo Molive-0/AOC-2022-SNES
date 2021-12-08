@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "type": "shell",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "make all",
+            "group": "build"
+        },
+        {
+            "label": "build and run",
+            "command": "make run",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
