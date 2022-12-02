@@ -4,135 +4,110 @@
 .importzp pfac
 .export day_two
 
-.struct pos1
-    xcoord .word
-    ycoord .word ;also aim for pos2
-.endstruct
-
-.struct pos2
-    ycoord .dword
-.endstruct
-
 proc day_two
 .segment "ROM1"
 incbin datalz4, "data.txt.lz4"
 
+.zeropage
+part1: .res 4
+part2: .res 4
+
 .code
 LZ4_decompress datalz4, EXRAM, x
 lda #0
-sta f:EXRAM,x
+sta EXRAM,x
 
 RW_forced a16i16
+stz part1
+stz part1+2
+stz part2
+stz part2+2
 printf "Day Two:"
 jsl NextLine
 
+ldx #0
+loop:
+;lda #0
+RW a8
+lda f:EXRAM, x
+;check for empty line
+beq done
+cmp #$0A
+beq done
+sub #'A'
+sta z:0
+inx
+inx
+lda f:EXRAM, x
+sub #'X'
+asl
+asl
+add z:0
+txy
+RW a16
+and #$00ff
+tax
+lda f:score_table1, x
+and #$00ff
+adc part1
+sta part1
+lda f:score_table2, x
+and #$00ff
+adc part2
+sta part2
+tyx
+inx
+inx
+bra loop
+
+done:
+RW_assume a8i16
 RW a16
 break
 printf "Part One: "
 
-ldx #0
-loop:
-lda #0
-RW a8
-lda f:EXRAM,x
-beq end
-cmp #'u'
-beq up
-cmp #'f'
-beq forward
-down:
-RW_assume a8i16
-lda f:EXRAM+5,x
-RW a16
-sub #'0'
-add pos_one+pos1::ycoord
-sta pos_one+pos1::ycoord
-txa
-add #7
-tax
-bra loop
-up:
-RW_assume a8i16
-lda f:EXRAM+3,x
-sub #'0'
-RW a16
-eor #$FFFF
-adc pos_one+pos1::ycoord
-sta pos_one+pos1::ycoord
-txa
-add #5
-tax
-bra loop
-forward:
-RW_assume a8i16
-lda f:EXRAM+8,x
-RW a16
-sub #'0'
-pha
-add pos_one+pos1::xcoord
-sta pos_one+pos1::xcoord
-pla
-ldy pos_one+pos1::ycoord
-phx
-jsr mult16x16
-plx
-lda multbuf
-add pos_two+pos2::ycoord
-sta pos_two+pos2::ycoord
-lda multbuf+2
-adc pos_two+pos2::ycoord+2
-sta pos_two+pos2::ycoord+2
-txa
-add #10
-tax
-bra loop
-end:
-RW_assume a8i16
-RW a16
-lda pos_one+pos1::xcoord
-ldy pos_one+pos1::ycoord
-jsr mult16x16
-
-lda multbuf
-sta strbuf
-lda multbuf+2
-sta strbuf+2
-
+RW_forced a16i16
 lda #$80
-RW a8i16
-ldx #.loword(strbuf)
+RW a8
+ldx #.loword(part1)
 jsr printstr
 jsl NextLine
 
-printf "Part Two: $"
+printf "Part Two: "
 
 RW_forced a16i16
-ldx #.loword(pos_two+pos2::ycoord)
-ldy pos_one+pos1::xcoord
-jsr mult32x16
+lda #$80
+RW a8
+ldx #.loword(part2)
+jsr printstr
+jsl NextLine
 
-lda multbuf
-sta strbuf
-lda multbuf+2
-sta strbuf+2
-lda multbuf+4
-sta strbuf+4
+rts
 
-RW a8i8
-ldx #5
-print_loop:
-lda strbuf,x
-phx
-jsl PrintHex
-RW_forced a8i8
-plx
-dex
-bpl print_loop
-
-:
-bra :-
+score_table1:
+.byte 1+3 ;A X
+.byte 1+0 ;B X
+.byte 1+6 ;C X
+.byte $FF ;D X
+.byte 2+6 ;A Y
+.byte 2+3 ;B Y
+.byte 2+0 ;C Y
+.byte $FF ;D Y
+.byte 3+0 ;A Z
+.byte 3+6 ;B Z
+.byte 3+3 ;C Z
+.byte $FF ;D Z
+score_table2:
+.byte 3+0 ;A X
+.byte 1+0 ;B X
+.byte 2+0 ;C X
+.byte $FF ;D X
+.byte 1+3 ;A Y
+.byte 2+3 ;B Y
+.byte 3+3 ;C Y
+.byte $FF ;D Y
+.byte 2+6 ;A Z
+.byte 3+6 ;B Z
+.byte 1+6 ;C Z
+.byte $FF ;D Z
 endproc
-
-.zeropage
-pos_one: .tag pos1
-pos_two: .tag pos2

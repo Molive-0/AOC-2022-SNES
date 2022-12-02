@@ -595,7 +595,7 @@ facbcd06:         clc
          sta z:wrkspc02        ;save
          lda z:wrkspc02+2        ;scratchpad
          adc z:wrkspc02+2        ;double &...
-         sta z:wrkspc02+4        ;save
+         sta z:wrkspc02+2        ;save
          lda z:wrkspc02+4        ;scratchpad
          adc z:wrkspc02+4        ;double &...
          sta z:wrkspc02+4        ;save

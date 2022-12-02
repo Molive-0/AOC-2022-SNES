@@ -16,8 +16,14 @@
     .byte str
     end:
     .code
+    RW a8
+    lda #$C0
+    phb
+    pha
+    plb
     RW a16i16
     lda #.loword(start)
     ldy #.loword(end-start)
     jsl Print
+    plb
 .endmac

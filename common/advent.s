@@ -2,6 +2,7 @@
 
 .export strcpy
 .export printstr
+.export numbuf
 .import strbuf
 
 proc strcpy
@@ -35,8 +36,16 @@ endproc
 proc printstr
 jsl binstr
 RW_forced a8i16
+lda #$80
+phb
+pha
+plb
 RW a16
 lda #.loword(strbuf)
 jsl Print
+plb
 rts
 endproc
+
+.segment "LORAM"
+numbuf: .res 4000
